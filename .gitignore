@@ -5,3 +5,5 @@ target/
 .DS_Store
 Thumbs.db
 person.json
+out/
+*.log
