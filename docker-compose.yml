@@ -1,0 +1,8 @@
+services:
+  json-odm:
+    build: .
+    container_name: json-odm
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./person.json:/app/person.json

@@ -1,0 +1,27 @@
+version: '3'
+
+tasks:
+  run:
+    desc: Kompiluje, uruchamia testy i startuje aplikację
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        ./mvnw.cmd clean compile test exec:java
+        {{else}}
+        ./mvnw clean compile test exec:java
+        {{end}}
+
+  up:
+    desc: Uruchamia aplikację w kontenerze Docker
+    cmds:
+      - docker compose run --rm json-odm
+
+  update:
+    desc: Aktualizuje zależności Maven i buduje projekt
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        ./mvnw.cmd clean install -U
+        {{else}}
+        ./mvnw clean install -U
+        {{end}}
