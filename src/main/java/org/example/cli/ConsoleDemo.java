@@ -39,7 +39,13 @@ public class ConsoleDemo {
     }
 
     private void serialization() {
-        Person person = new Person("Jan Kowalski");
+        Person person = new Person(
+                "Jan \"Kowalski\"",
+                null,
+                22,
+                true,
+                4.5
+        );
 
         // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
         //

@@ -18,14 +18,14 @@ public class JsonDeserializer {
     public <T> T fromFile(Path path, Class<T> clazz) {
         try {
             String json = Files.readString(path);
-            Map<String, String> root = new JsonParser(json).parseObject();
+            Map<String, JsonValue> root = new JsonParser(json).parseObject();
             return fromMap(root, clazz);
         } catch (IOException e) {
             throw new RuntimeException("Nie udało się odczytać pliku: " + path, e);
         }
     }
 
-    private <T> T fromMap(Map<String, String> root, Class<T> clazz) {
+    private <T> T fromMap(Map<String, JsonValue> root, Class<T> clazz) {
         try {
             Constructor<T> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -34,9 +34,9 @@ public class JsonDeserializer {
             for (Field field : ReflectionUtils.getSerializableFields(clazz)) {
                 field.setAccessible(true);
 
-                String value = root.get(ReflectionUtils.getJsonFieldName(field));
+                JsonValue value = root.get(ReflectionUtils.getJsonFieldName(field));
 
-                if (value == null) {
+                if (!root.containsKey(ReflectionUtils.getJsonFieldName(field))) {
                     // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
                     //
                     // if (field.isAnnotationPresent(JsonDefaultValue.class)) {
@@ -47,23 +47,66 @@ public class JsonDeserializer {
                     continue;
                 }
 
-                if (field.getType() != String.class) {
-                    // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
-                    //
-                    // Object parsedValue = readValue(valueNode, field);
-                    // field.set(instance, parsedValue);
-                    // continue;
+                if (value.isNull()) {
+                    if (field.getType().isPrimitive()) {
+                        throw new RuntimeException("Nie można przypisać null do typu prostego: " + field.getName());
+                    }
 
-                    throw new RuntimeException("Pierwsza wersja parsera obsługuje tylko String.");
+                    field.set(instance, null);
+                    continue;
                 }
 
-                field.set(instance, value);
+                field.set(instance, readSimpleValue(value, field));
             }
 
             return instance;
         } catch (Exception e) {
             throw new RuntimeException("Nie udało się utworzyć obiektu: " + clazz.getName(), e);
         }
+    }
+
+    private Object readSimpleValue(JsonValue value, Field field) {
+        Class<?> type = field.getType();
+
+        if (type == String.class) {
+            if (value.getType() != JsonValue.Type.STRING) {
+                throw new RuntimeException("Oczekiwano String dla pola: " + field.getName());
+            }
+
+            return value.asString();
+        }
+
+        if (type == int.class || type == Integer.class) {
+            if (value.getType() != JsonValue.Type.INTEGER) {
+                throw new RuntimeException("Oczekiwano int dla pola: " + field.getName());
+            }
+
+            return value.asInteger();
+        }
+
+        if (type == double.class || type == Double.class) {
+            if (value.getType() != JsonValue.Type.INTEGER && value.getType() != JsonValue.Type.DOUBLE) {
+                throw new RuntimeException("Oczekiwano double dla pola: " + field.getName());
+            }
+
+            return value.asDouble();
+        }
+
+        if (type == boolean.class || type == Boolean.class) {
+            if (value.getType() != JsonValue.Type.BOOLEAN) {
+                throw new RuntimeException("Oczekiwano boolean dla pola: " + field.getName());
+            }
+
+            return value.asBoolean();
+        }
+
+        // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
+        //
+        // Object parsedValue = readValue(valueNode, field);
+        // field.set(instance, parsedValue);
+        // continue;
+
+        throw new RuntimeException("Pierwsza wersja parsera obsługuje tylko typy proste: " + field.getName());
     }
 
     // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.

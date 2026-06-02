@@ -61,10 +61,7 @@ public class JsonSerializer {
         }
 
         if (value == null) {
-            // TODO: Obecny parser nie obsługuje null.
-            // return "null";
-
-            throw new RuntimeException("Pierwsza wersja parsera nie obsługuje null: " + field.getName());
+            return "null";
         }
 
         if (type == String.class) {
@@ -85,7 +82,13 @@ public class JsonSerializer {
         //
         // return toJsonObject(value);
 
-        throw new RuntimeException("Pierwsza wersja parsera obsługuje tylko String: " + field.getName());
+        if (type == int.class || type == Integer.class ||
+                type == boolean.class || type == Boolean.class ||
+                type == double.class || type == Double.class) {
+            return String.valueOf(value);
+        }
+
+        throw new RuntimeException("Pierwsza wersja parsera obsługuje tylko typy proste i null: " + field.getName());
     }
 
     // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.

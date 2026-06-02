@@ -11,12 +11,13 @@ import lombok.ToString;
 @ToString
 public class Person {
     private String name;
+    private String lastName;
+    private int age;
+    private boolean active;
+    private double averageGrade;
 
     // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
     //
-    // private int age;
-    // private boolean active;
-    // private double averageGrade;
     // private List<String> skills;
     // private Address address;
 }
