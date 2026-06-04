@@ -1,5 +1,7 @@
 package org.example.odm;
 
+import java.util.Map;
+
 public class JsonValue {
 
     public enum Type {
@@ -7,7 +9,8 @@ public class JsonValue {
         STRING,
         INTEGER,
         DOUBLE,
-        BOOLEAN
+        BOOLEAN,
+        OBJECT
     }
 
     private final Type type;
@@ -38,6 +41,10 @@ public class JsonValue {
         return new JsonValue(Type.BOOLEAN, value);
     }
 
+    public static JsonValue ofObject(Map<String, JsonValue> value) {
+        return new JsonValue(Type.OBJECT, value);
+    }
+
     public Type getType() {
         return type;
     }
@@ -64,5 +71,10 @@ public class JsonValue {
 
     public Boolean asBoolean() {
         return (Boolean) value;
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, JsonValue> asObject() {
+        return (Map<String, JsonValue>) value;
     }
 }

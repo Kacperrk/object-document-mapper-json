@@ -100,13 +100,17 @@ public class JsonDeserializer {
             return value.asBoolean();
         }
 
+        if (value.getType() == JsonValue.Type.OBJECT) {
+            return fromMap(value.asObject(), type);
+        }
+
         // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
         //
         // Object parsedValue = readValue(valueNode, field);
         // field.set(instance, parsedValue);
         // continue;
 
-        throw new RuntimeException("Pierwsza wersja parsera obsługuje tylko typy proste: " + field.getName());
+        throw new RuntimeException("Nieobsługiwany typ pola: " + field.getName());
     }
 
     // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.

@@ -1,9 +1,9 @@
 package org.example.cli;
 
+import org.example.model.Address;
 import org.example.model.Person;
 import org.example.odm.JsonOdmMapper;
 
-// import org.example.model.Address;
 // import java.util.List;
 
 import java.nio.file.Path;
@@ -39,30 +39,21 @@ public class ConsoleDemo {
     }
 
     private void serialization() {
+        Address address = new Address(
+                "Warszawa",
+                "Marszałkowska",
+                10
+        );
+
         Person person = new Person(
-                "Jan \"Kowalski\"",
+                "Jan Kowalski",
                 null,
                 22,
                 true,
-                4.5
+                4.5,
+//                List.of("Java", "JSON", "Refleksja"),
+                address
         );
-
-        // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
-        //
-        // Address address = new Address(
-        //         "Warszawa",
-        //         "Marszałkowska",
-        //         10
-        // );
-        //
-        // Person person = new Person(
-        //         "Jan Kowalski",
-        //         22,
-        //         true,
-        //         4.5,
-        //         List.of("Java", "JSON", "Refleksja"),
-        //         address
-        // );
 
         String json = mapper.toJson(person);
         Path path = Path.of("person.json");

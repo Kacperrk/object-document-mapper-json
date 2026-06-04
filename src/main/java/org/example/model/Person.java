@@ -15,9 +15,6 @@ public class Person {
     private int age;
     private boolean active;
     private double averageGrade;
-
-    // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
-    //
     // private List<String> skills;
-    // private Address address;
+    private Address address;
 }

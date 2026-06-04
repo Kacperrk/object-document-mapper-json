@@ -88,7 +88,7 @@ public class JsonSerializer {
             return String.valueOf(value);
         }
 
-        throw new RuntimeException("Pierwsza wersja parsera obsługuje tylko typy proste i null: " + field.getName());
+        return toJsonObject(value);
     }
 
     // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.

@@ -13,6 +13,18 @@ public class JsonParser {
     }
 
     public Map<String, JsonValue> parseObject() {
+        Map<String, JsonValue> result = parseObjectValue();
+
+        skipWhitespace();
+
+        if (index != json.length()) {
+            throw new RuntimeException("Niepoprawny JSON.");
+        }
+
+        return result;
+    }
+
+    private Map<String, JsonValue> parseObjectValue() {
         skipWhitespace();
         expect('{');
 
@@ -47,17 +59,15 @@ public class JsonParser {
             expect(',');
         }
 
-        skipWhitespace();
-
-        if (index != json.length()) {
-            throw new RuntimeException("Niepoprawny JSON.");
-        }
-
         return result;
     }
 
     private JsonValue parseValue() {
         char current = current();
+
+        if (current == '{') {
+            return JsonValue.ofObject(parseObjectValue());
+        }
 
         if (current == '"') {
             return JsonValue.ofString(parseString());
