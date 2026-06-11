@@ -1,6 +1,8 @@
 package org.example.odm;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class JsonParser {
@@ -62,11 +64,45 @@ public class JsonParser {
         return result;
     }
 
+    private List<JsonValue> parseArrayValue() {
+        skipWhitespace();
+        expect('[');
+
+        List<JsonValue> result = new ArrayList<>();
+
+        skipWhitespace();
+
+        if (current() == ']') {
+            index++;
+            return result;
+        }
+
+        while (true) {
+            skipWhitespace();
+            result.add(parseValue());
+
+            skipWhitespace();
+
+            if (current() == ']') {
+                index++;
+                break;
+            }
+
+            expect(',');
+        }
+
+        return result;
+    }
+
     private JsonValue parseValue() {
         char current = current();
 
         if (current == '{') {
             return JsonValue.ofObject(parseObjectValue());
+        }
+
+        if (current == '[') {
+            return JsonValue.ofArray(parseArrayValue());
         }
 
         if (current == '"') {

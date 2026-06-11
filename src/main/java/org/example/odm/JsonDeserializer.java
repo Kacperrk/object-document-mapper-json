@@ -7,10 +7,12 @@ import org.example.util.ReflectionUtils;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
-// import java.util.ArrayList;
-// import java.util.List;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class JsonDeserializer {
@@ -66,11 +68,23 @@ public class JsonDeserializer {
     }
 
     private Object readSimpleValue(JsonValue value, Field field) {
-        Class<?> type = field.getType();
+        return readValue(value, field.getGenericType(), field.getName());
+    }
+
+    private Object readValue(JsonValue value, Type targetType, String fieldName) {
+        if (targetType instanceof ParameterizedType parameterizedType
+                && parameterizedType.getRawType() instanceof Class<?> rawType
+                && List.class.isAssignableFrom(rawType)) {
+            return readList(value, parameterizedType, fieldName);
+        }
+
+        if (!(targetType instanceof Class<?> type)) {
+            throw new RuntimeException("Nieobsługiwany typ pola: " + fieldName);
+        }
 
         if (type == String.class) {
             if (value.getType() != JsonValue.Type.STRING) {
-                throw new RuntimeException("Oczekiwano String dla pola: " + field.getName());
+                throw new RuntimeException("Oczekiwano String dla pola: " + fieldName);
             }
 
             return value.asString();
@@ -78,7 +92,7 @@ public class JsonDeserializer {
 
         if (type == int.class || type == Integer.class) {
             if (value.getType() != JsonValue.Type.INTEGER) {
-                throw new RuntimeException("Oczekiwano int dla pola: " + field.getName());
+                throw new RuntimeException("Oczekiwano int dla pola: " + fieldName);
             }
 
             return value.asInteger();
@@ -86,7 +100,7 @@ public class JsonDeserializer {
 
         if (type == double.class || type == Double.class) {
             if (value.getType() != JsonValue.Type.INTEGER && value.getType() != JsonValue.Type.DOUBLE) {
-                throw new RuntimeException("Oczekiwano double dla pola: " + field.getName());
+                throw new RuntimeException("Oczekiwano double dla pola: " + fieldName);
             }
 
             return value.asDouble();
@@ -94,7 +108,7 @@ public class JsonDeserializer {
 
         if (type == boolean.class || type == Boolean.class) {
             if (value.getType() != JsonValue.Type.BOOLEAN) {
-                throw new RuntimeException("Oczekiwano boolean dla pola: " + field.getName());
+                throw new RuntimeException("Oczekiwano boolean dla pola: " + fieldName);
             }
 
             return value.asBoolean();
@@ -104,46 +118,29 @@ public class JsonDeserializer {
             return fromMap(value.asObject(), type);
         }
 
-        // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
-        //
-        // Object parsedValue = readValue(valueNode, field);
-        // field.set(instance, parsedValue);
-        // continue;
+        throw new RuntimeException("Nieobsługiwany typ pola: " + fieldName);
+    }
 
-        throw new RuntimeException("Nieobsługiwany typ pola: " + field.getName());
+    private List<Object> readList(JsonValue value, ParameterizedType listType, String fieldName) {
+        if (value.getType() != JsonValue.Type.ARRAY) {
+            throw new RuntimeException("Oczekiwano listy dla pola: " + fieldName);
+        }
+
+        Type elementType = listType.getActualTypeArguments()[0];
+        List<Object> result = new ArrayList<>();
+
+        for (JsonValue element : value.asArray()) {
+            if (element.isNull()) {
+                result.add(null);
+            } else {
+                result.add(readValue(element, elementType, fieldName));
+            }
+        }
+
+        return result;
     }
 
     // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
-    //
-    // private Object readValue(JsonNode node, Field field) {
-    //     Class<?> type = field.getType();
-    //
-    //     if (type.isArray()) {
-    //         throw new RuntimeException("Tablice nie są obsługiwane: " + field.getName());
-    //     }
-    //
-    //     if (type == String.class) {
-    //         return node.asText();
-    //     }
-    //
-    //     if (type == int.class || type == Integer.class) {
-    //         return node.asInt();
-    //     }
-    //
-    //     if (type == boolean.class || type == Boolean.class) {
-    //         return node.asBoolean();
-    //     }
-    //
-    //     if (type == double.class || type == Double.class) {
-    //         return node.asDouble();
-    //     }
-    //
-    //     if (ReflectionUtils.isList(field)) {
-    //         return readStringList(node, field);
-    //     }
-    //
-    //     return fromJsonNode(node, type);
-    // }
     //
     // private Object readDefaultValue(Field field) {
     //     String value = field.getAnnotation(JsonDefaultValue.class).value();
@@ -166,29 +163,5 @@ public class JsonDeserializer {
     //     }
     //
     //     throw new RuntimeException("Nieobsługiwany typ dla @JsonDefaultValue: " + field.getName());
-    // }
-    //
-    // private List<String> readStringList(JsonNode node, Field field) {
-    //     if (!node.isArray()) {
-    //         throw new RuntimeException("Oczekiwano listy dla pola: " + field.getName());
-    //     }
-    //
-    //     Class<?> elementType = ReflectionUtils.getListElementType(field);
-    //
-    //     if (elementType != String.class) {
-    //         throw new RuntimeException("Obsługiwane są tylko listy typu List<String>: " + field.getName());
-    //     }
-    //
-    //     List<String> result = new ArrayList<>();
-    //
-    //     for (JsonNode elementNode : node) {
-    //         if (elementNode.isNull()) {
-    //             result.add(null);
-    //         } else {
-    //             result.add(elementNode.asText());
-    //         }
-    //     }
-    //
-    //     return result;
     // }
 }

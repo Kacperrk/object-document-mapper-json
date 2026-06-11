@@ -1,5 +1,6 @@
 package org.example.odm;
 
+import java.util.List;
 import java.util.Map;
 
 public class JsonValue {
@@ -10,7 +11,8 @@ public class JsonValue {
         INTEGER,
         DOUBLE,
         BOOLEAN,
-        OBJECT
+        OBJECT,
+        ARRAY
     }
 
     private final Type type;
@@ -45,6 +47,10 @@ public class JsonValue {
         return new JsonValue(Type.OBJECT, value);
     }
 
+    public static JsonValue ofArray(List<JsonValue> value) {
+        return new JsonValue(Type.ARRAY, value);
+    }
+
     public Type getType() {
         return type;
     }
@@ -76,5 +82,10 @@ public class JsonValue {
     @SuppressWarnings("unchecked")
     public Map<String, JsonValue> asObject() {
         return (Map<String, JsonValue>) value;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<JsonValue> asArray() {
+        return (List<JsonValue>) value;
     }
 }

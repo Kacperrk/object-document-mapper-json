@@ -60,66 +60,42 @@ public class JsonSerializer {
             throw new RuntimeException("Tablice nie są obsługiwane: " + field.getName());
         }
 
+        return formatValue(value);
+    }
+
+    private String formatValue(Object value) {
         if (value == null) {
             return "null";
         }
 
-        if (type == String.class) {
-            return "\"" + ReflectionUtils.escapeJson((String) value) + "\"";
+        if (value instanceof String text) {
+            return "\"" + ReflectionUtils.escapeJson(text) + "\"";
         }
 
-        // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
-        //
-        // if (type == int.class || type == Integer.class ||
-        //         type == boolean.class || type == Boolean.class ||
-        //         type == double.class || type == Double.class) {
-        //     return String.valueOf(value);
-        // }
-        //
-        // if (ReflectionUtils.isList(field)) {
-        //     return formatStringList((List<?>) value, field);
-        // }
-        //
-        // return toJsonObject(value);
-
-        if (type == int.class || type == Integer.class ||
-                type == boolean.class || type == Boolean.class ||
-                type == double.class || type == Double.class) {
+        if (value instanceof Integer || value instanceof Boolean || value instanceof Double) {
             return String.valueOf(value);
+        }
+
+        if (value instanceof List<?> list) {
+            return formatList(list);
         }
 
         return toJsonObject(value);
     }
 
-    // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
-    //
-    // private String formatStringList(List<?> list, Field field) {
-    //     Class<?> elementType = ReflectionUtils.getListElementType(field);
-    //
-    //     if (elementType != String.class) {
-    //         throw new RuntimeException("Obsługiwane są tylko listy typu List<String>: " + field.getName());
-    //     }
-    //
-    //     StringBuilder json = new StringBuilder();
-    //     json.append("[");
-    //
-    //     for (int i = 0; i < list.size(); i++) {
-    //         Object element = list.get(i);
-    //
-    //         if (element == null) {
-    //             json.append("null");
-    //         } else if (element instanceof String text) {
-    //             json.append("\"").append(ReflectionUtils.escapeJson(text)).append("\"");
-    //         } else {
-    //             throw new RuntimeException("Lista może zawierać tylko String: " + field.getName());
-    //         }
-    //
-    //         if (i < list.size() - 1) {
-    //             json.append(",");
-    //         }
-    //     }
-    //
-    //     json.append("]");
-    //     return json.toString();
-    // }
+    private String formatList(List<?> list) {
+        StringBuilder json = new StringBuilder();
+        json.append("[");
+
+        for (int i = 0; i < list.size(); i++) {
+            json.append(formatValue(list.get(i)));
+
+            if (i < list.size() - 1) {
+                json.append(",");
+            }
+        }
+
+        json.append("]");
+        return json.toString();
+    }
 }
