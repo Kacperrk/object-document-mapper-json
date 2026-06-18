@@ -5,7 +5,6 @@ import org.example.model.Person;
 import org.example.odm.JsonOdmMapper;
 
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Scanner;
 
 public class ConsoleDemo {
@@ -45,21 +44,10 @@ public class ConsoleDemo {
         );
 
         Person person = new Person(
-                List.of("Java", "JSON"),
-                List.of(7, 13),
-                List.of(true, false),
-                List.of(4.5, 3.75),
-                List.of(
-                        new Address("Kraków", "Długa", 5),
-                        new Address("Gdańsk", "Morska", 12)
-                ),
-                List.of(
-                        List.of("Java", "Spring"),
-                        List.of("JSON", "Parser")
-                ),
-                java.util.Arrays.asList("pierwszy", null),
-                List.of(),
-                null
+                "Jan",
+                "haslo",
+                null,
+                "Warszawa"
         );
 
         String json = mapper.toJson(person);

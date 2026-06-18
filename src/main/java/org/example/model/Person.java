@@ -3,20 +3,24 @@ package org.example.model;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import java.util.List;
+import org.example.annotations.JsonDefaultValue;
+import org.example.annotations.JsonIgnore;
+import org.example.annotations.JsonName;
+import org.example.annotations.JsonSkipNull;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
 public class Person {
-    private List<String> skills;
-    private List<Integer> luckyNumbers;
-    private List<Boolean> flags;
-    private List<Double> grades;
-    private List<Address> previousAddresses;
-    private List<List<String>> nestedSkills;
-    private List<String> nullElements;
-    private List<String> emptyList;
-    private List<String> nullableList;
+    @JsonName("imie")
+    private String firstName;
+
+    @JsonIgnore
+    private String password;
+
+    @JsonSkipNull
+    private String email;
+
+    @JsonDefaultValue("nieznane")
+    private String city;
 }

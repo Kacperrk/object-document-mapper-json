@@ -1,8 +1,7 @@
 package org.example.odm;
 
+import org.example.annotations.JsonDefaultValue;
 import org.example.util.ReflectionUtils;
-
-// import org.example.annotations.JsonDefaultValue;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -36,18 +35,17 @@ public class JsonDeserializer {
             for (Field field : ReflectionUtils.getSerializableFields(clazz)) {
                 field.setAccessible(true);
 
-                JsonValue value = root.get(ReflectionUtils.getJsonFieldName(field));
+                String jsonKey = ReflectionUtils.getJsonFieldName(field);
 
-                if (!root.containsKey(ReflectionUtils.getJsonFieldName(field))) {
-                    // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
-                    //
-                    // if (field.isAnnotationPresent(JsonDefaultValue.class)) {
-                    //     Object defaultValue = readDefaultValue(field);
-                    //     field.set(instance, defaultValue);
-                    // }
-
+                if (!root.containsKey(jsonKey)) {
+                    if (field.isAnnotationPresent(JsonDefaultValue.class)) {
+                        Object defaultValue = readDefaultValue(field);
+                        field.set(instance, defaultValue);
+                    }
                     continue;
                 }
+
+                JsonValue value = root.get(jsonKey);
 
                 if (value.isNull()) {
                     if (field.getType().isPrimitive()) {
@@ -140,28 +138,30 @@ public class JsonDeserializer {
         return result;
     }
 
-    // TODO: Przywrócić po rozszerzeniu własnego parsera JSON.
-    //
-    // private Object readDefaultValue(Field field) {
-    //     String value = field.getAnnotation(JsonDefaultValue.class).value();
-    //     Class<?> type = field.getType();
-    //
-    //     if (type == String.class) {
-    //         return value;
-    //     }
-    //
-    //     if (type == int.class || type == Integer.class) {
-    //         return Integer.parseInt(value);
-    //     }
-    //
-    //     if (type == boolean.class || type == Boolean.class) {
-    //         return Boolean.parseBoolean(value);
-    //     }
-    //
-    //     if (type == double.class || type == Double.class) {
-    //         return Double.parseDouble(value);
-    //     }
-    //
-    //     throw new RuntimeException("Nieobsługiwany typ dla @JsonDefaultValue: " + field.getName());
-    // }
+    private Object readDefaultValue(Field field) {
+        String value = field.getAnnotation(JsonDefaultValue.class).value();
+        Class<?> type = field.getType();
+
+        if (type == String.class) {
+            return value;
+        }
+
+        if (type == int.class || type == Integer.class) {
+            return Integer.parseInt(value);
+        }
+
+        if (type == boolean.class || type == Boolean.class) {
+            if (!value.equals("true") && !value.equals("false")) {
+                throw new RuntimeException("Niepoprawna wartość boolean dla @JsonDefaultValue: " + field.getName());
+            }
+
+            return Boolean.parseBoolean(value);
+        }
+
+        if (type == double.class || type == Double.class) {
+            return Double.parseDouble(value);
+        }
+
+        throw new RuntimeException("Nieobsługiwany typ dla @JsonDefaultValue: " + field.getName());
+    }
 }
