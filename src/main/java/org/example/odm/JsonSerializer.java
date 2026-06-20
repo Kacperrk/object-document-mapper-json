@@ -17,8 +17,8 @@ public class JsonSerializer {
     }
 
     private String toJsonObject(Object object) {
-        StringBuilder json = new StringBuilder();
-        json.append("{");
+        StringBuilder objectJson = new StringBuilder();
+        objectJson.append("{");
 
         List<Field> fields = ReflectionUtils.getSerializableFields(object.getClass());
         boolean first = true;
@@ -34,13 +34,13 @@ public class JsonSerializer {
                 }
 
                 if (!first) {
-                    json.append(",");
+                    objectJson.append(",");
                 }
 
-                json.append("\"")
+                objectJson.append("\"")
                         .append(ReflectionUtils.getJsonFieldName(field))
                         .append("\":")
-                        .append(formatValue(value, field));
+                        .append(serializeFieldValue(value, field));
 
                 first = false;
 
@@ -49,27 +49,27 @@ public class JsonSerializer {
             }
         }
 
-        json.append("}");
-        return json.toString();
+        objectJson.append("}");
+        return objectJson.toString();
     }
 
-    private String formatValue(Object value, Field field) {
+    private String serializeFieldValue(Object value, Field field) {
         Class<?> type = field.getType();
 
         if (type.isArray()) {
             throw new RuntimeException("Tablice nie są obsługiwane: " + field.getName());
         }
 
-        return formatValue(value);
+        return serializeValue(value);
     }
 
-    private String formatValue(Object value) {
+    private String serializeValue(Object value) {
         if (value == null) {
             return "null";
         }
 
         if (value instanceof String text) {
-            return "\"" + ReflectionUtils.escapeJson(text) + "\"";
+            return "\"" + escapeJson(text) + "\"";
         }
 
         if (value instanceof Integer || value instanceof Boolean || value instanceof Double) {
@@ -77,25 +77,34 @@ public class JsonSerializer {
         }
 
         if (value instanceof List<?> list) {
-            return formatList(list);
+            return serializeList(list);
         }
 
         return toJsonObject(value);
     }
 
-    private String formatList(List<?> list) {
-        StringBuilder json = new StringBuilder();
-        json.append("[");
+    private String serializeList(List<?> list) {
+        StringBuilder arrayJson = new StringBuilder();
+        arrayJson.append("[");
 
         for (int i = 0; i < list.size(); i++) {
-            json.append(formatValue(list.get(i)));
+            arrayJson.append(serializeValue(list.get(i)));
 
             if (i < list.size() - 1) {
-                json.append(",");
+                arrayJson.append(",");
             }
         }
 
-        json.append("]");
-        return json.toString();
+        arrayJson.append("]");
+        return arrayJson.toString();
+    }
+
+    private String escapeJson(String value) {
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 }

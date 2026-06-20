@@ -7,36 +7,36 @@ import java.util.Map;
 
 public class JsonParser {
 
-    private final String json;
+    private final String jsonText;
     private int index = 0;
 
-    public JsonParser(String json) {
-        this.json = json;
+    public JsonParser(String jsonText) {
+        this.jsonText = jsonText;
     }
 
     public Map<String, JsonValue> parseObject() {
-        Map<String, JsonValue> result = parseObjectValue();
+        Map<String, JsonValue> parsedObject = parseObjectValue();
 
         skipWhitespace();
 
-        if (index != json.length()) {
+        if (index != jsonText.length()) {
             throw new RuntimeException("Niepoprawny JSON.");
         }
 
-        return result;
+        return parsedObject;
     }
 
     private Map<String, JsonValue> parseObjectValue() {
         skipWhitespace();
         expect('{');
 
-        Map<String, JsonValue> result = new LinkedHashMap<>();
+        Map<String, JsonValue> objectFields = new LinkedHashMap<>();
 
         skipWhitespace();
 
         if (current() == '}') {
             index++;
-            return result;
+            return objectFields;
         }
 
         while (true) {
@@ -49,7 +49,7 @@ public class JsonParser {
             skipWhitespace();
             JsonValue value = parseValue();
 
-            result.put(key, value);
+            objectFields.put(key, value);
 
             skipWhitespace();
 
@@ -61,25 +61,25 @@ public class JsonParser {
             expect(',');
         }
 
-        return result;
+        return objectFields;
     }
 
     private List<JsonValue> parseArrayValue() {
         skipWhitespace();
         expect('[');
 
-        List<JsonValue> result = new ArrayList<>();
+        List<JsonValue> arrayElements = new ArrayList<>();
 
         skipWhitespace();
 
         if (current() == ']') {
             index++;
-            return result;
+            return arrayElements;
         }
 
         while (true) {
             skipWhitespace();
-            result.add(parseValue());
+            arrayElements.add(parseValue());
 
             skipWhitespace();
 
@@ -91,7 +91,7 @@ public class JsonParser {
             expect(',');
         }
 
-        return result;
+        return arrayElements;
     }
 
     private JsonValue parseValue() {
@@ -142,24 +142,24 @@ public class JsonParser {
 
         boolean isDouble = false;
 
-        if (index < json.length() && json.charAt(index) == '.') {
+        if (index < jsonText.length() && jsonText.charAt(index) == '.') {
             isDouble = true;
             index++;
             readDigits();
         }
 
-        if (index < json.length() && (json.charAt(index) == 'e' || json.charAt(index) == 'E')) {
+        if (index < jsonText.length() && (jsonText.charAt(index) == 'e' || jsonText.charAt(index) == 'E')) {
             isDouble = true;
             index++;
 
-            if (index < json.length() && (json.charAt(index) == '+' || json.charAt(index) == '-')) {
+            if (index < jsonText.length() && (jsonText.charAt(index) == '+' || jsonText.charAt(index) == '-')) {
                 index++;
             }
 
             readDigits();
         }
 
-        String number = json.substring(start, index);
+        String number = jsonText.substring(start, index);
 
         if (isDouble) {
             return JsonValue.ofDouble(Double.parseDouble(number));
@@ -169,17 +169,17 @@ public class JsonParser {
     }
 
     private void readDigits() {
-        if (index >= json.length() || !Character.isDigit(json.charAt(index))) {
+        if (index >= jsonText.length() || !Character.isDigit(jsonText.charAt(index))) {
             throw new RuntimeException("Niepoprawna liczba JSON.");
         }
 
-        while (index < json.length() && Character.isDigit(json.charAt(index))) {
+        while (index < jsonText.length() && Character.isDigit(jsonText.charAt(index))) {
             index++;
         }
     }
 
     private void parseLiteral(String literal) {
-        if (!json.startsWith(literal, index)) {
+        if (!jsonText.startsWith(literal, index)) {
             throw new RuntimeException("Niepoprawna wartość JSON.");
         }
 
@@ -189,28 +189,28 @@ public class JsonParser {
     private String parseString() {
         expect('"');
 
-        StringBuilder result = new StringBuilder();
+        StringBuilder parsedString = new StringBuilder();
 
-        while (index < json.length()) {
+        while (index < jsonText.length()) {
             char character = current();
 
             if (character == '"') {
                 expect('"');
-                return result.toString();
+                return parsedString.toString();
             }
 
             if (character == '\\') {
                 index++;
 
-                if (index >= json.length()) {
+                if (index >= jsonText.length()) {
                     throw new RuntimeException("Niezamknięty escape w stringu JSON.");
                 }
 
-                result.append(parseEscapedCharacter());
+                parsedString.append(parseEscapedCharacter());
                 continue;
             }
 
-            result.append(character);
+            parsedString.append(character);
             index++;
         }
 
@@ -242,15 +242,15 @@ public class JsonParser {
     }
 
     private char current() {
-        if (index >= json.length()) {
+        if (index >= jsonText.length()) {
             throw new RuntimeException("Nieoczekiwany koniec JSON.");
         }
 
-        return json.charAt(index);
+        return jsonText.charAt(index);
     }
 
     private void skipWhitespace() {
-        while (index < json.length() && Character.isWhitespace(json.charAt(index))) {
+        while (index < jsonText.length() && Character.isWhitespace(jsonText.charAt(index))) {
             index++;
         }
     }

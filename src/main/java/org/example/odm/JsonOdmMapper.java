@@ -21,7 +21,7 @@ public class JsonOdmMapper {
         }
     }
 
-    public <T> T fromFile(Path path, Class<T> clazz) {
-        return deserializer.fromFile(path, clazz);
+    public <T> T fromFile(Path path, Class<T> targetClass) {
+        return deserializer.fromFile(path, targetClass);
     }
 }

@@ -20,8 +20,8 @@ public class ConsoleDemo {
             String option = scanner.nextLine().trim();
 
             switch (option) {
-                case "1" -> serialization();
-                case "2" -> deserialization();
+                case "1" -> serializePersonToJsonFile();
+                case "2" -> deserializePersonFromJsonFile();
                 case "q" -> {
                     return;
                 }
@@ -38,7 +38,7 @@ public class ConsoleDemo {
         System.out.print("Wybierz opcję: ");
     }
 
-    private void serialization() {
+    private void serializePersonToJsonFile() {
         Address address = new Address(
                 "Warszawa",
                 "Marszałkowska",
@@ -70,7 +70,7 @@ public class ConsoleDemo {
                 "Polska"
         );
 
-        String json = mapper.toJson(person);
+        String jsonText = mapper.toJson(person);
         Path path = Path.of("person.json");
 
         mapper.writeToFile(person, path);
@@ -79,12 +79,12 @@ public class ConsoleDemo {
         System.out.println(person);
 
         System.out.println("\nJSON:");
-        System.out.println(json);
+        System.out.println(jsonText);
 
         System.out.println("\nZapisano do pliku");
     }
 
-    private void deserialization() {
+    private void deserializePersonFromJsonFile() {
         Path path = Path.of("person.json");
         Person person = mapper.fromFile(path, Person.class);
 

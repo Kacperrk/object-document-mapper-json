@@ -16,28 +16,28 @@ import java.util.Map;
 
 public class JsonDeserializer {
 
-    public <T> T fromFile(Path path, Class<T> clazz) {
+    public <T> T fromFile(Path path, Class<T> targetClass) {
         try {
-            String json = Files.readString(path);
-            Map<String, JsonValue> root = new JsonParser(json).parseObject();
-            return fromMap(root, clazz);
+            String jsonText = Files.readString(path);
+            Map<String, JsonValue> root = new JsonParser(jsonText).parseObject();
+            return mapToObject(root, targetClass);
         } catch (IOException e) {
             throw new RuntimeException("Nie udało się odczytać pliku: " + path, e);
         }
     }
 
-    private <T> T fromMap(Map<String, JsonValue> root, Class<T> clazz) {
+    private <T> T mapToObject(Map<String, JsonValue> jsonObject, Class<T> targetClass) {
         try {
-            Constructor<T> constructor = clazz.getDeclaredConstructor();
+            Constructor<T> constructor = targetClass.getDeclaredConstructor();
             constructor.setAccessible(true);
             T instance = constructor.newInstance();
 
-            for (Field field : ReflectionUtils.getSerializableFields(clazz)) {
+            for (Field field : ReflectionUtils.getSerializableFields(targetClass)) {
                 field.setAccessible(true);
 
                 String jsonKey = ReflectionUtils.getJsonFieldName(field);
 
-                if (!root.containsKey(jsonKey)) {
+                if (!jsonObject.containsKey(jsonKey)) {
                     if (field.isAnnotationPresent(JsonDefaultValue.class)) {
                         Object defaultValue = readDefaultValue(field);
                         field.set(instance, defaultValue);
@@ -45,7 +45,7 @@ public class JsonDeserializer {
                     continue;
                 }
 
-                JsonValue value = root.get(jsonKey);
+                JsonValue value = jsonObject.get(jsonKey);
 
                 if (value.isNull()) {
                     if (field.getType().isPrimitive()) {
@@ -56,16 +56,16 @@ public class JsonDeserializer {
                     continue;
                 }
 
-                field.set(instance, readSimpleValue(value, field));
+                field.set(instance, readFieldValue(value, field));
             }
 
             return instance;
         } catch (Exception e) {
-            throw new RuntimeException("Nie udało się utworzyć obiektu: " + clazz.getName(), e);
+            throw new RuntimeException("Nie udało się utworzyć obiektu: " + targetClass.getName(), e);
         }
     }
 
-    private Object readSimpleValue(JsonValue value, Field field) {
+    private Object readFieldValue(JsonValue value, Field field) {
         return readValue(value, field.getGenericType(), field.getName());
     }
 
@@ -113,7 +113,7 @@ public class JsonDeserializer {
         }
 
         if (value.getType() == JsonValue.Type.OBJECT) {
-            return fromMap(value.asObject(), type);
+            return mapToObject(value.asObject(), type);
         }
 
         throw new RuntimeException("Nieobsługiwany typ pola: " + fieldName);
@@ -125,17 +125,17 @@ public class JsonDeserializer {
         }
 
         Type elementType = listType.getActualTypeArguments()[0];
-        List<Object> result = new ArrayList<>();
+        List<Object> listValues = new ArrayList<>();
 
         for (JsonValue element : value.asArray()) {
             if (element.isNull()) {
-                result.add(null);
+                listValues.add(null);
             } else {
-                result.add(readValue(element, elementType, fieldName));
+                listValues.add(readValue(element, elementType, fieldName));
             }
         }
 
-        return result;
+        return listValues;
     }
 
     private Object readDefaultValue(Field field) {

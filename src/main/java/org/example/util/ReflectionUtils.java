@@ -13,10 +13,10 @@ public final class ReflectionUtils {
     private ReflectionUtils() {
     }
 
-    public static List<Field> getSerializableFields(Class<?> clazz) {
+    public static List<Field> getSerializableFields(Class<?> sourceClass) {
         List<Field> fields = new ArrayList<>();
 
-        for (Field field : clazz.getDeclaredFields()) {
+        for (Field field : sourceClass.getDeclaredFields()) {
             int modifiers = field.getModifiers();
 
             if (Modifier.isStatic(modifiers) || Modifier.isTransient(modifiers) || field.isSynthetic()) {
@@ -41,14 +41,5 @@ public final class ReflectionUtils {
         }
 
         return field.getName();
-    }
-
-    public static String escapeJson(String value) {
-        return value
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
     }
 }
