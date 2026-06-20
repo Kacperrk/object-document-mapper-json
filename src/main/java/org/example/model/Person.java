@@ -8,12 +8,32 @@ import org.example.annotations.JsonIgnore;
 import org.example.annotations.JsonName;
 import org.example.annotations.JsonSkipNull;
 
+import java.util.List;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
 public class Person {
-    @JsonName("imie")
-    private String firstName;
+    private String name;
+    private String lastName;
+    private int age;
+    private boolean active;
+    private double averageGrade;
+
+    private Address address;
+
+    private List<String> skills;
+    private List<Integer> luckyNumbers;
+    private List<Boolean> flags;
+    private List<Double> grades;
+    private List<Address> previousAddresses;
+    private List<List<String>> nestedSkills;
+    private List<String> nullElements;
+    private List<String> emptyList;
+    private List<String> nullableList;
+
+    @JsonName("pseudonim")
+    private String nick;
 
     @JsonIgnore
     private String password;
@@ -21,6 +41,6 @@ public class Person {
     @JsonSkipNull
     private String email;
 
-    @JsonDefaultValue("nieznane")
-    private String city;
+    @JsonDefaultValue("nieznany")
+    private String country;
 }

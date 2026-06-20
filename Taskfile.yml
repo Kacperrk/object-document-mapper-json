@@ -2,13 +2,13 @@ version: '3'
 
 tasks:
   run:
-    desc: Kompiluje, uruchamia testy i startuje aplikację
+    desc: Kompiluje i startuje aplikację
     cmds:
       - |
         {{if eq OS "windows"}}
-        ./mvnw.cmd clean compile test exec:java
+        ./mvnw.cmd clean compile exec:java
         {{else}}
-        ./mvnw clean compile test exec:java
+        ./mvnw clean compile exec:java
         {{end}}
 
   up:
@@ -24,4 +24,14 @@ tasks:
         ./mvnw.cmd clean install -U
         {{else}}
         ./mvnw clean install -U
+        {{end}}
+
+  test:
+    desc: Uruchamia testy JUnit
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        ./mvnw.cmd test
+        {{else}}
+        ./mvnw test
         {{end}}
